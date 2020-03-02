@@ -24,7 +24,7 @@ class Game:
 			flag = False
 
 		else:
-			ai_check()
+			self.ai_check(row,col)
 
 		if self.board[row][col] != None:
 			self.computer()
@@ -75,7 +75,7 @@ class Game:
 		for i in range(3):
 			if board[row][i] == None:
 				empty = i
-			if board[row][i] = 'X' and i != col:
+			if board[row][i] == 'X' and i != col:
 				board[row][empty] = 'O'
 
 		for i in range(3):
