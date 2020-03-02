@@ -1,4 +1,5 @@
 from random import randint
+global col,row
 class Game:
 	def __init__(self):
 		self.board =[[None for i in range(3)]for i in range(3)]
@@ -16,12 +17,19 @@ class Game:
 		return self.board[row][col]
 
 	def computer(self):
-		row = randint(0,2)
-		col = randint(0,2)
+		flag = True
+		if flag:
+			row = randint(0,2)
+			col = randint(0,2)
+			flag = False
+
+		else:
+			ai_check()
+
 		if self.board[row][col] != None:
 			self.computer()
 		else:
-			self.board[row][col] = "0"
+			self.board[row][col] = "O"
 			if self.check(row,col):
 				print("Computer Wins")
 
@@ -60,6 +68,39 @@ class Game:
 		elif row + col == 2 and self.board[2][0] == self.board[1][1] ==  self.board[0][2]:
 			self.winner = True
 			return True
+
+	def ai_check(self,row,col):
+		empty = None
+		empty_j = None
+		for i in range(3):
+			if board[row][i] == None:
+				empty = i
+			if board[row][i] = 'X' and i != col:
+				board[row][empty] = 'O'
+
+		for i in range(3):
+			if board[i][col] == None:
+				empty = i
+			if board[i][col] == 'X' and i != row:
+				board[empty][col] = 'O'
+
+		if row == col:
+			for i in range(3):
+				if board[i][i] == None:
+					empty = i
+
+				if board[i][i] == 'X' and i != row:
+					board[empty][empty] = 'O'
+
+		if row + col == 2:
+			for i,j in zip(range(3),range(2,-1,-1)):
+				if board[i][j] == None:
+					empty = i
+					empty_j = j
+				if board[i][j] == 'X' and i != row and j != col:
+					board[empty][empty_j] = 'O'
+
+ 
 
 
 	def play(self):
