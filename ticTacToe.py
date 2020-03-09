@@ -1,115 +1,155 @@
-from random import randint
-global col,row
-class Game:
-	def __init__(self):
-		self.board =[[None for i in range(3)]for i in range(3)]
-		self.player_one, self.player_two = 5,5
-		self.count = 0
-		self.pawn = {"X": "Player", "O": "Computer"}
-		self.winner = False
+import numpy as np
+from math import inf as infinity
 
-	def printBoard(self):
-		print()
-		for i in range(3):
-			print(self.board[i])
+game_state = [[' ',' ',' '],
+              [' ',' ',' '],
+              [' ',' ',' ']]
+players = ['X','O']
 
-	def checkFilled(self,row,col):
-		return self.board[row][col]
+def play_move(state, player, block_num):
+    if state[int((block_num-1)/3)][(block_num-1)%3] is ' ':
+        state[int((block_num-1)/3)][(block_num-1)%3] = player
+    else:
+        block_num = int(input("Block is not empty! Choose again: "))
+        play_move(state, player, block_num)
+    
+def copy_game_state(state):
+    new_state = [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]
+    for i in range(3):
+        for j in range(3):
+            new_state[i][j] = state[i][j]
+    return new_state
+    
+def check_current_state(game_state):
+    # Check if draw
+    draw_flag = 0
+    for i in range(3):
+        for j in range(3):
+            if game_state[i][j] is ' ':
+                draw_flag = 1
+    if draw_flag is 0:
+        return None, "Draw"
+    
+    # Check horizontals
+    if (game_state[0][0] == game_state[0][1] and game_state[0][1] == game_state[0][2] and game_state[0][0] is not ' '):
+        return game_state[0][0], "Done"
+    if (game_state[1][0] == game_state[1][1] and game_state[1][1] == game_state[1][2] and game_state[1][0] is not ' '):
+        return game_state[1][0], "Done"
+    if (game_state[2][0] == game_state[2][1] and game_state[2][1] == game_state[2][2] and game_state[2][0] is not ' '):
+        return game_state[2][0], "Done"
+    
+    # Check verticals
+    if (game_state[0][0] == game_state[1][0] and game_state[1][0] == game_state[2][0] and game_state[0][0] is not ' '):
+        return game_state[0][0], "Done"
+    if (game_state[0][1] == game_state[1][1] and game_state[1][1] == game_state[2][1] and game_state[0][1] is not ' '):
+        return game_state[0][1], "Done"
+    if (game_state[0][2] == game_state[1][2] and game_state[1][2] == game_state[2][2] and game_state[0][2] is not ' '):
+        return game_state[0][2], "Done"
+    
+    # Check diagonals
+    if (game_state[0][0] == game_state[1][1] and game_state[1][1] == game_state[2][2] and game_state[0][0] is not ' '):
+        return game_state[1][1], "Done"
+    if (game_state[2][0] == game_state[1][1] and game_state[1][1] == game_state[0][2] and game_state[2][0] is not ' '):
+        return game_state[1][1], "Done"
+    
+    return None, "Not Done"
 
-	def computer(self):
-		flag = True
-		if flag:
-			row = randint(0,2)
-			col = randint(0,2)
-			flag = False
+def print_board(game_state):
+    print('----------------')
+    print('| ' + str(game_state[0][0]) + ' || ' + str(game_state[0][1]) + ' || ' + str(game_state[0][2]) + ' |')
+    print('----------------')
+    print('| ' + str(game_state[1][0]) + ' || ' + str(game_state[1][1]) + ' || ' + str(game_state[1][2]) + ' |')
+    print('----------------')
+    print('| ' + str(game_state[2][0]) + ' || ' + str(game_state[2][1]) + ' || ' + str(game_state[2][2]) + ' |')
+    print('----------------')
+    
+    
+def getBestMove(state, player):
+    '''
+    Minimax Algorithm
+    '''
+    winner_loser , done = check_current_state(state)
+    if done == "Done" and winner_loser == 'O': # If AI won
+        return 1
+    elif done == "Done" and winner_loser == 'X': # If Human won
+        return -1
+    elif done == "Draw":    # Draw condition
+        return 0
+        
+    moves = []
+    empty_cells = []
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] is ' ':
+                empty_cells.append(i*3 + (j+1))
+    
+    for empty_cell in empty_cells:
+        move = {}
+        move['index'] = empty_cell
+        new_state = copy_game_state(state)
+        play_move(new_state, player, empty_cell)
+        
+        if player == 'O':    # If AI
+            result = getBestMove(new_state, 'X')    # make more depth tree for human
+            move['score'] = result
+        else:
+            result = getBestMove(new_state, 'O')    # make more depth tree for AI
+            move['score'] = result
+        
+        moves.append(move)
 
-		else:
-			self.ai_check(row,col)
+    # Find best move
+    best_move = None
+    if player == 'O':   # If AI player
+        best = -infinity
+        for move in moves:
+            if move['score'] > best:
+                best = move['score']
+                best_move = move['index']
+    else:
+        best = infinity
+        for move in moves:
+            if move['score'] < best:
+                best = move['score']
+                best_move = move['index']
+                
+    return best_move
 
-		if self.board[row][col] != None:
-			self.computer()
-		else:
-			self.board[row][col] = "O"
-			if self.check(row,col):
-				print("Computer Wins")
-
-	def player(self):
-		row = int(input("Row : "))
-		col = int(input("Col : "))
-		if not self.checkFilled(row,col):
-			self.board[row][col] = "X"
-			if self.check(row,col):
-				print("Player Wins")
-		else:
-			print("Position is not empty... Try again")
-			self.player()
-
-	def place(self):
-		if self.count < 9:
-			if self.count % 2 == 0:
-				self.player()
-			else:
-				self.computer()
-
-			self.count += 1
-			self.printBoard()
-
-
-	def check(self,row,col):
-		if self.board[row][0] == self.board[row][1] ==  self.board[row][2]:
-			self.winner = True
-			return True
-		elif self.board[0][col] == self.board[1][col] ==  self.board[2][col]:
-			self.winner = True
-			return True
-		elif row == col and self.board[0][0] == self.board[1][1] ==  self.board[2][2]:
-			self.winner = True
-			return True
-		elif row + col == 2 and self.board[2][0] == self.board[1][1] ==  self.board[0][2]:
-			self.winner = True
-			return True
-
-	def ai_check(self,row,col):
-		empty = None
-		empty_j = None
-		for i in range(3):
-			if board[row][i] == None:
-				empty = i
-			if board[row][i] == 'X' and i != col:
-				board[row][empty] = 'O'
-
-		for i in range(3):
-			if board[i][col] == None:
-				empty = i
-			if board[i][col] == 'X' and i != row:
-				board[empty][col] = 'O'
-
-		if row == col:
-			for i in range(3):
-				if board[i][i] == None:
-					empty = i
-
-				if board[i][i] == 'X' and i != row:
-					board[empty][empty] = 'O'
-
-		if row + col == 2:
-			for i,j in zip(range(3),range(2,-1,-1)):
-				if board[i][j] == None:
-					empty = i
-					empty_j = j
-				if board[i][j] == 'X' and i != row and j != col:
-					board[empty][empty_j] = 'O'
-
- 
-
-
-	def play(self):
-		print("Player : X")
-		print("Computer : O")
-		for i in range(9):
-			if self.count<9 and not self.winner:
-				self.place()
-			else:
-				break
-obj = Game()
-obj.play()
+# PLaying
+play_again = 'Y'
+while play_again == 'Y' or play_again == 'y':
+    game_state = [[' ',' ',' '],
+              [' ',' ',' '],
+              [' ',' ',' ']]
+    current_state = "Not Done"
+    print("\nNew Game!")
+    print_board(game_state)
+    player_choice = input("Choose which player goes first - X (You) or O(The AI): ")
+    winner = None
+    
+    if player_choice == 'X' or player_choice == 'x':
+        current_player_idx = 0
+    else:
+        current_player_idx = 1
+        
+    while current_state == "Not Done":
+        if current_player_idx == 0: # Human's turn
+            block_choice = int(input("Human, your turn! Choose where to place (1 to 9): "))
+            play_move(game_state ,players[current_player_idx], block_choice)
+        else:   # AI's turn
+            block_choice = getBestMove(game_state, players[current_player_idx])
+            play_move(game_state ,players[current_player_idx], block_choice)
+            print("AI plays move: " + str(block_choice))
+        print_board(game_state)
+        winner, current_state = check_current_state(game_state)
+        if winner is not None:
+            print(str(winner) + " won!")
+        else:
+            current_player_idx = (current_player_idx + 1)%2
+        
+        if current_state is "Draw":
+            print("Draw!")
+            
+    play_again = input('Wanna try again?(Y/N) : ')
+    if play_again == 'N':
+        print('OH Ok')
