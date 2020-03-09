@@ -1,5 +1,5 @@
 import random
-print("Status : Dirty, clean")
+print("Status : Dirty, Clean")
 
 env = [None,None]
 env[0] = random.choice(["Dirty", "Clean"])
