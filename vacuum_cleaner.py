@@ -20,9 +20,9 @@ def clean():
 		return "Left"
 
 while "Dirty" in env:
+	print(clean())
 	env[0] = random.choice(["Dirty", "Clean"])
 	env[1] = random.choice(["Dirty", "Clean"])
-	print(clean())
 
 else:
 	print(env)
